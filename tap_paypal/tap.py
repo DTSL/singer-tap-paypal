@@ -13,8 +13,7 @@ from tap_paypal.sync import sync
 
 VERSION: str = pkg_resources.get_distribution('tap-paypal').version
 LOGGER: logging.RootLogger = get_logger()
-REQUIRED_CONFIG_KEYS: tuple = ('start_date', 'client_id', 'secret')
-
+REQUIRED_CONFIG_KEYS: tuple = ('start_date', 'client_id', 'secret', 'schemaless')
 
 @utils.handle_top_exception(LOGGER)
 def main() -> None:
@@ -45,7 +44,7 @@ def main() -> None:
         args.config.get('sandbox', False),
     )
 
-    sync(paypal, args.state, catalog, args.config['start_date'])
+    sync(paypal, args.state, catalog, args.config['start_date'], args.config['schemaless'])
 
 
 if __name__ == '__main__':

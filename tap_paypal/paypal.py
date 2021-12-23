@@ -63,6 +63,7 @@ class PayPal(object):  # noqa: WPS230
 
     def paypal_transactions(  # noqa: WPS210, WPS213
         self,
+        schemaless: bool,
         **kwargs: dict,
     ) -> Generator[dict, None, None]:
         """Paypal transaction history.
@@ -189,10 +190,11 @@ class PayPal(object):  # noqa: WPS230
                     'transaction_details',
                     [],
                 )
-                yield from (
-                    clean_paypal_transactions(transaction)
-                    for transaction in transactions
-                )
+                if schemaless:
+                    yield from transactions
+                else:
+                    yield from (clean_paypal_transactions(transaction) for transaction in transactions)
+
                 # for transaction in transactions:
                 #     yield clean_paypal_transactions(transaction)
 

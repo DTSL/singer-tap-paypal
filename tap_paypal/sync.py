@@ -19,6 +19,7 @@ def sync(
     state: dict,
     catalog: Catalog,
     start_date: str,
+    schemaless: bool,
 ) -> None:
     """Sync data from tap source.
 
@@ -65,7 +66,7 @@ def sync(
         # The state of the stream is used as kwargs for the method
         # E.g. if the state of the stream has a key 'start_date', it will be
         # used in the method as start_date='2021-01-01T00:00:00+0000'
-        for row in tap_data(**stream_state):
+        for row in tap_data(schemaless, **stream_state):
             sync_record(stream, row, state)
 
 
