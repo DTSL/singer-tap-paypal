@@ -16,19 +16,22 @@ def clear_currently_syncing(state: dict) -> dict:
     return state.pop('currently_syncing', None)
 
 
-def get_stream_state(state: dict, tap_stream_id: str) -> dict:
+def get_stream_state(state: dict, start_date: str, tap_stream_id: str) -> dict:
     """Return the state of the stream.
 
     Arguments:
         state {dict} -- The state
+        start_date {str} -- default date
         tap_stream_id {str} -- The id of the stream
 
     Returns:
-        dict -- The state of the stream
+        dict -- The state of the stream, if no bookmark was found return default start_date
     """
     return state.get(
         'bookmarks',
-        {},
+        {tap_stream_id: {
+            "start_date": start_date
+        }},
     ).get(tap_stream_id)
 
 
