@@ -63,6 +63,7 @@ class PayPal(object):  # noqa: WPS230
 
     def paypal_transactions(  # noqa: WPS210, WPS213
         self,
+        catchup_days: int,
         schemaless: bool,
         **kwargs: dict,
     ) -> Generator[dict, None, None]:
@@ -83,7 +84,7 @@ class PayPal(object):  # noqa: WPS230
             raise ValueError('The parameter start_date is required.')
 
         # Set start date and end date
-        start_date: datetime = isoparse(start_date_input)
+        start_date: datetime = isoparse(start_date_input) + timedelta(days=-catchup_days)
         end_date: datetime = datetime.now(timezone.utc).replace(microsecond=0)
 
         self.logger.info(

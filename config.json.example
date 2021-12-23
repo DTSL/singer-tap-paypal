@@ -3,4 +3,6 @@
   "secret": "paypal_secret",
   "sandbox": false,
   "start_date": "2021-01-01T00:00:00Z"
+  "schemaless": true,
+  "catchup_days": 90
 }

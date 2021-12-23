@@ -44,7 +44,7 @@ def main() -> None:
         args.config.get('sandbox', False),
     )
 
-    sync(paypal, args.state, catalog, args.config['start_date'], args.config['schemaless'])
+    sync(paypal, args.state, catalog, args.config['start_date'], args.config.get('catchup_days', 0), args.config['schemaless'])
 
 
 if __name__ == '__main__':
