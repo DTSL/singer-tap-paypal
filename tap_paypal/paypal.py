@@ -156,54 +156,56 @@ class PayPal(object):  # noqa: WPS230
                 http_params['page'] = page
 
                 # Request data from the API
-                client: httpx.Client = httpx.Client(http2=True)
-                response: httpx._models.Response = client.get(  # noqa: WPS437
-                    url,
-                    headers=self.headers,
-                    params=http_params,
-                )
-
-                # Raise error on 4xx and 5xxx
-                response.raise_for_status()
-
-                response_data: dict = response.json()
-
-                # Retrieve the current page details
-                page = response_data.get('page', 1)
-                total_pages = response_data.get('total_pages', 1)
-
-                if total_pages == 0:
-                    self.logger.warning("No transactions for the requested period")
-                    percentage_page = 100
-                    percentage_batch = 100
-                    total_pages = 1
-                else:
-                    percentage_page: float = round((page / total_pages) * 100, 2)
-                    percentage_batch: float = round(
-                        (current_batch / total_batches) * 100, 2,
+                # A client with a 120s timeout for connecting, and a 60s timeout elsewhere.
+                timeout = httpx.Timeout(60.0, connect=120.0)
+                with httpx.Client(http2=True, timeout=timeout) as client:
+                    response: httpx._models.Response = client.get(  # noqa: WPS437
+                        url,
+                        headers=self.headers,
+                        params=http_params
                     )
 
-                self.logger.info(
-                    f'Batch: {current_batch} of '  # noqa: WPS221
-                    f'{total_batches} '
-                    f'({percentage_batch}%), '
-                    f'page: {page} of '
-                    f'{total_pages} '
-                    f'({percentage_page}%)',
-                )
+                    # Raise error on 4xx and 5xxx
+                    response.raise_for_status()
 
-                # Yield every transaction in the response
-                transactions: list = response_data.get(
-                    'transaction_details',
-                    [],
-                )
-                if schemaless:
-                    yield from transactions
-                else:
-                    yield from (clean_paypal_transactions(transaction) for transaction in transactions)
+                    response_data: dict = response.json()
 
-                # for transaction in transactions:
-                #     yield clean_paypal_transactions(transaction)
+                    # Retrieve the current page details
+                    page = response_data.get('page', 1)
+                    total_pages = response_data.get('total_pages', 1)
+
+                    if total_pages == 0:
+                        self.logger.warning("No transactions for the requested period")
+                        percentage_page = 100
+                        percentage_batch = 100
+                        total_pages = 1
+                    else:
+                        percentage_page: float = round((page / total_pages) * 100, 2)
+                        percentage_batch: float = round(
+                            (current_batch / total_batches) * 100, 2,
+                        )
+
+                    self.logger.info(
+                        f'Batch: {current_batch} of '  # noqa: WPS221
+                        f'{total_batches} '
+                        f'({percentage_batch}%), '
+                        f'page: {page} of '
+                        f'{total_pages} '
+                        f'({percentage_page}%)',
+                    )
+
+                    # Yield every transaction in the response
+                    transactions: list = response_data.get(
+                        'transaction_details',
+                        [],
+                    )
+                    if schemaless:
+                        yield from transactions
+                    else:
+                        yield from (clean_paypal_transactions(transaction) for transaction in transactions)
+
+                    # for transaction in transactions:
+                    #     yield clean_paypal_transactions(transaction)
 
         self.logger.info('Finished: paypal_transactions')
 
